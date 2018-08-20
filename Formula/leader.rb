@@ -13,6 +13,7 @@ class Leader < Formula
     cd repo_in_gopath do
       system 'go', 'get', 'github.com/gobuffalo/packr/...'
       system 'packr'
+      system 'go', 'get', '.'
       system 'go', 'build', '-o', bin / 'leader', '-ldflags', ldflags, '.'
       man1.install 'assets/leader.1'
     end
