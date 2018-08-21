@@ -7,12 +7,14 @@ class Leader < Formula
   depends_on 'go' => :build
 
   def install
-    repo_in_gopath = buildpath / '.gobuild/src/github.com/dhamidi/leader'
-    repo_in_gopath.install Dir['*']
+    ENV['GOPATH'] = buildpath
+    (buildpath/'src/github.com/dhamidi/leader').install buildpath.children
     ldflags = '-X main.Release=v0.2.0'
-    cd repo_in_gopath do
+
+    cd 'src/github.com/dhamidi/leader' do
       system 'go', 'get', 'github.com/gobuffalo/packr/...'
-      system 'packr'
+      system('find', ENV['GOPATH'])
+      system(buildpath / 'bin/packr')
       system 'go', 'get', '.'
       system 'go', 'build', '-o', bin / 'leader', '-ldflags', ldflags, '.'
       man1.install 'assets/leader.1'
@@ -22,17 +24,24 @@ class Leader < Formula
     install_leaderrc
   end
 
+  def user_home_dir
+    osx = "/Users/#{ENV['USER']}"
+    linux = "/home/#{ENV['USER']}"
+    [osx, linux].find(&File.method(:exist?))
+  end
+
   def install_leaderrc
-    dest = "#{ENV['HOME']}/.leaderrc"
+    dest = "#{user_home_dir}/.leaderrc"
     return if File.exist?(dest)
 
     File.write(dest, example_leaderrc)
   end
 
   def install_shell_specific_configuration_files
-    append_if_exists "#{ENV['HOME']}/.zshrc", 'eval "$(leader init)"'
-    append_if_exists "#{ENV['HOME']}/.bashrc", 'eval "$(leader init)"'
-    append_if_exists "#{ENV['HOME']}/.config/fish/config.fish", 'leader init | source'
+    home = user_home_dir
+    append_if_exists "#{home}/.zshrc", 'eval "$(leader init)"'
+    append_if_exists "#{home}/.bashrc", 'eval "$(leader init)"'
+    append_if_exists "#{home}/.config/fish/config.fish", 'leader init | source'
   end
 
   def append_if_exists(dest, line)
@@ -42,38 +51,38 @@ class Leader < Formula
 
   def test
     File.write('.leaderrc', <<~JSON)
-    {
-      "keys": {
-        "o": "echo ok"
+      {
+        "keys": {
+          "o": "echo ok"
+        }
       }
-    }
 JSON
-    system 'leader', '@o'
+    assert_match('ok', shell_output('leader @o'))
   end
 
   def example_leaderrc
     <<~JSON
-    {
-      "keys": {
-        "h": {
-          "name": "help",
-          "keys": {
-            "l": "leader help"
-          }
-        },
-        "g": {
-          "name": "git",
-          "loopingKeys": [
-            "s"
-          ],
-          "keys": {
-            "p": "git push",
-            "P": "git pull",
-            "s": "git status"
+      {
+        "keys": {
+          "h": {
+            "name": "help",
+            "keys": {
+              "l": "leader help"
+            }
+          },
+          "g": {
+            "name": "git",
+            "loopingKeys": [
+              "s"
+            ],
+            "keys": {
+              "p": "git push",
+              "P": "git pull",
+              "s": "git status"
+            }
           }
         }
       }
-    }
 JSON
   end
 end
