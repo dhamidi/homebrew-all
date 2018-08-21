@@ -46,6 +46,7 @@ class Leader < Formula
 
   def append_if_exists(dest, line)
     return unless File.exist?(dest)
+    return if File.read(dest).include?(line)
     File.open(dest, 'a') { |f| f.puts line }
   end
 
