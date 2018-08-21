@@ -19,35 +19,23 @@ class Leader < Formula
       system 'go', 'build', '-o', bin / 'leader', '-ldflags', ldflags, '.'
       man1.install 'assets/leader.1'
     end
-
-    install_shell_specific_configuration_files
-    install_leaderrc
   end
 
-  def user_home_dir
-    osx = "/Users/#{ENV['USER']}"
-    linux = "/home/#{ENV['USER']}"
-    [osx, linux].find(&File.method(:exist?))
-  end
-
-  def install_leaderrc
-    dest = "#{user_home_dir}/.leaderrc"
-    return if File.exist?(dest)
-
-    File.write(dest, example_leaderrc)
-  end
-
-  def install_shell_specific_configuration_files
-    home = user_home_dir
-    append_if_exists "#{home}/.zshrc", 'eval "$(leader init)"'
-    append_if_exists "#{home}/.bashrc", 'eval "$(leader init)"'
-    append_if_exists "#{home}/.config/fish/config.fish", 'leader init | source'
-  end
-
-  def append_if_exists(dest, line)
-    return unless File.exist?(dest)
-    return if File.read(dest).include?(line)
-    File.open(dest, 'a') { |f| f.puts line }
+  def post_install
+    shellrc, shell_init = case File.basename(ENV['SHELL'])
+                          when 'bash'
+                            ['~/.bashrc', 'eval "$(leader init)"']
+                          when 'zsh'
+                            ['~/.zshrc', 'eval "$(leader init)"']
+                          when 'fish'
+                            ['~/.config/fish/config.fish', 'leader init | source']
+                          end
+    puts "Add the following to your #{shellrc}:"
+    puts shell_init
+    puts ''
+    puts 'To get started, create a file ~/.leaderrc with these contents:'
+    puts ''
+    puts example_leaderrc
   end
 
   def test
