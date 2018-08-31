@@ -1,15 +1,15 @@
 class Leader < Formula
   desc "VIM's leader key for your terminal"
   homepage 'https://dhamidi.github.io/leader'
-  url 'https://github.com/dhamidi/leader/archive/v0.3.0.tar.gz'
-  sha256 '3d583ef9928be1139c890db6bc40538d64aaec3aee146fe39634bb53fc22edef'
+  url 'https://github.com/dhamidi/leader/archive/v0.3.2.tar.gz'
+  sha256 '81341a65531763a7138e1d69d7ca1d9dcfb38a7483b68f7823cc41a00b7c612b'
 
   depends_on 'go' => :build
 
   def install
     ENV['GOPATH'] = buildpath
     (buildpath/'src/github.com/dhamidi/leader').install buildpath.children
-    ldflags = '-X main.Release=v0.3.0'
+    ldflags = '-X main.Release=v0.3.2'
 
     cd 'src/github.com/dhamidi/leader' do
       system 'go', 'get', 'github.com/gobuffalo/packr/...'
